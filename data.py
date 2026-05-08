@@ -132,8 +132,12 @@ CONVERSATIONS = [
 ]
 
 
-import torch
-from torch.utils.data import Dataset
+try:
+    import torch
+    from torch.utils.data import Dataset
+except ImportError:
+    torch = None
+    Dataset = object
 
 
 class ConversationDataset(Dataset):
