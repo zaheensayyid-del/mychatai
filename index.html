@@ -152,6 +152,75 @@ body{background:var(--bg);color:var(--text);
       transition:background .12s,border-color .12s}
 .chip:hover{background:var(--card2);border-color:var(--green)}
 
+/* ══ NAV TABS ════════════════════════════════════════════════════════════ */
+#nav-tabs{display:flex;gap:4px;padding:10px 22px 0;border-bottom:1px solid var(--border);
+          background:var(--sidebar);flex-shrink:0}
+.nav-tab{background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
+         padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;
+         border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.01em}
+.nav-tab:hover{color:var(--text);background:var(--card)}
+.nav-tab.on{color:var(--text);border-bottom:2px solid var(--green)}
+
+/* ══ IMAGE STUDIO ════════════════════════════════════════════════════════ */
+#img-studio{flex:1;display:none;flex-direction:column;overflow:hidden}
+#img-studio.on{display:flex}
+#studio-top{padding:20px 28px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+#studio-top h2{font-size:17px;font-weight:800;margin-bottom:14px;letter-spacing:-.01em}
+
+.mode-tabs{display:flex;gap:6px;margin-bottom:14px}
+.mode-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);
+          border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer;
+          font-weight:600;transition:all .15s}
+.mode-tab.on{background:var(--green);border-color:var(--green);color:#fff}
+
+#studio-prompt-row{display:flex;gap:10px;align-items:flex-end}
+#studio-prompt{flex:1;background:var(--card);border:1px solid var(--border);
+               color:var(--text);border-radius:12px;padding:12px 16px;
+               font-size:14px;font-family:inherit;resize:none;outline:none;
+               min-height:52px;max-height:120px;transition:border-color .2s}
+#studio-prompt:focus{border-color:var(--green)}
+#studio-prompt::placeholder{color:var(--muted2)}
+
+.style-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.style-chip{background:var(--card);border:1px solid var(--border);color:var(--muted);
+            border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;
+            transition:all .15s;font-weight:500}
+.style-chip:hover{border-color:var(--green);color:var(--text)}
+.style-chip.on{background:var(--green);border-color:var(--green);color:#fff}
+
+#studio-go{background:var(--green);border:none;color:#fff;padding:12px 22px;
+           border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;
+           flex-shrink:0;transition:background .15s,transform .1s;min-width:110px}
+#studio-go:hover{background:var(--green2);transform:scale(1.03)}
+#studio-go:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+#studio-status{font-size:13px;color:var(--muted);margin-top:10px;min-height:20px}
+
+#gallery{flex:1;overflow-y:auto;padding:20px 28px;display:grid;
+         grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;
+         align-content:start}
+#gallery::-webkit-scrollbar{width:6px}
+#gallery::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.gallery-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+              overflow:hidden;transition:transform .15s,box-shadow .15s;cursor:pointer}
+.gallery-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.gallery-card .gc-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.gallery-card .gc-spin{width:100%;aspect-ratio:4/3;background:var(--card2);
+                       display:flex;align-items:center;justify-content:center;
+                       font-size:32px;animation:pulse 1.4s ease-in-out infinite}
+.gallery-card .gc-foot{padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+.gallery-card .gc-cap{font-size:12px;color:var(--muted);overflow:hidden;
+                      text-overflow:ellipsis;white-space:nowrap;flex:1}
+.gallery-card .gc-dl{background:none;border:none;color:var(--muted);cursor:pointer;
+                     font-size:16px;padding:2px 4px;transition:color .12s;flex-shrink:0}
+.gallery-card .gc-dl:hover{color:var(--green)}
+#gallery-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;
+               justify-content:center;gap:12px;padding:60px 20px;color:var(--muted);
+               text-align:center}
+#gallery-empty .ge-icon{font-size:48px;opacity:.4}
+#gallery-empty p{font-size:14px;max-width:320px;line-height:1.6}
+
 /* ══ INPUT ══════════════════════════════════════════════════════════════════ */
 #input-area{padding:14px 22px 20px;border-top:1px solid var(--border);flex-shrink:0}
 #err{display:none;background:#2a1010;border:1px solid #5a2020;color:#ff8a8a;
@@ -166,6 +235,11 @@ body{background:var(--bg);color:var(--text);
      line-height:1.55;resize:none;outline:none;
      max-height:180px;min-height:24px;font-family:inherit}
 #txt::placeholder{color:var(--muted2)}
+#img-btn{background:none;border:none;color:var(--muted);width:34px;height:34px;
+         border-radius:9px;cursor:pointer;display:flex;align-items:center;
+         justify-content:center;flex-shrink:0;font-size:18px;
+         transition:color .15s,background .15s}
+#img-btn:hover{color:var(--green);background:var(--card2)}
 #send{background:var(--green);border:none;color:#fff;width:34px;height:34px;
       border-radius:9px;cursor:pointer;display:flex;align-items:center;
       justify-content:center;flex-shrink:0;transition:background .15s,opacity .15s,transform .1s}
@@ -221,6 +295,47 @@ body{background:var(--bg);color:var(--text);
     <div id="greeting"></div>
   </div>
 
+  <!-- nav tabs -->
+  <div id="nav-tabs">
+    <button class="nav-tab on" id="tab-chat" onclick="switchTab('chat')">💬 Chat</button>
+    <button class="nav-tab"    id="tab-img"  onclick="switchTab('img')">🎨 Image Studio</button>
+  </div>
+
+  <!-- IMAGE STUDIO -->
+  <div id="img-studio">
+    <div id="studio-top">
+      <h2>🎨 Image Studio</h2>
+      <div class="mode-tabs">
+        <button class="mode-tab on" id="mode-gen"  onclick="setMode('gen')">✨ AI Generate</button>
+        <button class="mode-tab"    id="mode-srch" onclick="setMode('srch')">🔍 Search Web</button>
+      </div>
+      <div class="style-row" id="style-row">
+        <button class="style-chip on" data-style="">Default</button>
+        <button class="style-chip" data-style="photorealistic, 8k">Photorealistic</button>
+        <button class="style-chip" data-style="digital art, vibrant">Digital Art</button>
+        <button class="style-chip" data-style="anime style">Anime</button>
+        <button class="style-chip" data-style="oil painting">Oil Painting</button>
+        <button class="style-chip" data-style="pencil sketch">Sketch</button>
+        <button class="style-chip" data-style="cinematic, dramatic lighting">Cinematic</button>
+        <button class="style-chip" data-style="pixel art">Pixel Art</button>
+      </div>
+      <div id="studio-prompt-row">
+        <textarea id="studio-prompt" rows="2"
+          placeholder="Describe what you want to see…"
+          onkeydown="studioKey(event)" oninput="grow(this)"></textarea>
+        <button id="studio-go" onclick="studioRun()">Generate</button>
+      </div>
+      <div id="studio-status"></div>
+    </div>
+    <div id="gallery">
+      <div id="gallery-empty">
+        <div class="ge-icon">🖼️</div>
+        <p>Your generated and searched images appear here. Type a prompt above and hit Generate!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
   <div id="msgs">
     <div id="welcome">
       <div class="big"><svg width="110" height="110" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10,55 C10,30 20,20 30,15 L20,5 L38,22 C42,20 46,19 50,19 C54,19 58,20 62,22 L80,5 L70,15 C80,20 90,30 90,55 C90,76 72,90 50,90 C28,90 10,76 10,55 Z" fill="#111"/><ellipse cx="36" cy="52" rx="10" ry="7" fill="white"/><ellipse cx="64" cy="52" rx="10" ry="7" fill="white"/><path d="M47,64 Q50,68 53,64 Q50,61 47,64Z" fill="white"/></svg></div>
@@ -240,6 +355,7 @@ body{background:var(--bg);color:var(--text);
   <div id="input-area">
     <div id="err"></div>
     <div id="box">
+      <button id="img-btn" title="Image Studio" onclick="switchTab('img')">🎨</button>
       <textarea id="txt" rows="1" placeholder="Message MyChatAI…"
         onkeydown="onKey(event)" oninput="grow(this)"></textarea>
       <button id="send" onclick="sendMsg()">
@@ -250,7 +366,7 @@ body{background:var(--bg);color:var(--text);
         </svg>
       </button>
     </div>
-    <div id="hint">Enter to send · Shift+Enter for newline · Runs locally · Remembers you</div>
+    <div id="hint">Enter to send · Shift+Enter for newline · 🎨 for Image Studio</div>
   </div>
 </div>
 
@@ -270,6 +386,14 @@ let busy    = false;
 let memOpen = true;
 let profile = {};
 
+// If UI is opened from a static server (e.g. :8000), send API calls to backend (:8080).
+const API_BASE = (() => {
+  const { protocol, hostname, port } = window.location;
+  if (port === '8000') return `${protocol}//${hostname}:8080`;
+  return '';
+})();
+const apiUrl = (path) => `${API_BASE}${path}`;
+
 // unique session id per browser
 let SESSION_ID = localStorage.getItem('session_id');
 if (!SESSION_ID) {
@@ -287,7 +411,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function pollStatus() {
   try {
-    const r = await fetch('/status', {signal: AbortSignal.timeout(3000)});
+    const r = await fetch(apiUrl('/status'), {signal: AbortSignal.timeout(3000)});
     const d = await r.json();
     const dot = document.getElementById('dot');
     const txt = document.getElementById('status-txt');
@@ -359,7 +483,7 @@ function renderMemory() {
 
 async function resetMemory() {
   if (!confirm('Clear everything I know about you?')) return;
-  await fetch('/profile/reset', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({session_id: SESSION_ID})});
+  await fetch(apiUrl('/profile/reset'), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({session_id: SESSION_ID})});
   profile = {};
   renderMemory();
   toast('Memory cleared');
@@ -513,7 +637,7 @@ async function sendMsg() {
   scroll();
 
   try {
-    const res = await fetch('/chat', {
+    const res = await fetch(apiUrl('/chat'), {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -571,7 +695,7 @@ async function sendMsg() {
     save();
 
     // refresh profile after response (AI may have learned something)
-    fetch(`/profile?session_id=${SESSION_ID}`).then(r=>r.json()).then(d=>{
+    fetch(apiUrl(`/profile?session_id=${SESSION_ID}`)).then(r=>r.json()).then(d=>{
       profile = d; renderMemory(); updateGreeting();
     }).catch(()=>{});
 
@@ -661,6 +785,160 @@ function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ══ TAB SWITCHING ══════════════════════════════════════════════════════════
+let currentTab = 'chat';
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-chat').classList.toggle('on', tab === 'chat');
+  document.getElementById('tab-img').classList.toggle('on',  tab === 'img');
+  document.getElementById('msgs').style.display        = tab === 'chat' ? '' : 'none';
+  document.getElementById('input-area').style.display  = tab === 'chat' ? '' : 'none';
+  document.getElementById('img-studio').style.display  = tab === 'img'  ? 'flex' : 'none';
+  if (tab === 'img') document.getElementById('studio-prompt').focus();
+  else               document.getElementById('txt').focus();
+}
+
+// ══ IMAGE STUDIO ══════════════════════════════════════════════════════════
+let studioMode    = 'gen';   // 'gen' | 'srch'
+let studioStyle   = '';
+let galleryItems  = JSON.parse(localStorage.getItem('gallery') || '[]');
+
+// boot: restore gallery
+window.addEventListener('DOMContentLoaded', () => {
+  galleryItems.forEach(item => addGalleryCard(item.url, item.caption, item.type, false));
+});
+
+function setMode(m) {
+  studioMode = m;
+  document.getElementById('mode-gen').classList.toggle('on',  m === 'gen');
+  document.getElementById('mode-srch').classList.toggle('on', m === 'srch');
+  document.getElementById('style-row').style.display = m === 'gen' ? '' : 'none';
+  document.getElementById('studio-go').textContent   = m === 'gen' ? 'Generate' : 'Search';
+  document.getElementById('studio-prompt').placeholder =
+    m === 'gen' ? 'Describe what you want to see…' : 'Search for real photos…';
+}
+
+// style chips
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.style-chip').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.style-chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      studioStyle = btn.dataset.style;
+    };
+  });
+});
+
+function studioKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); studioRun(); }
+}
+
+async function studioRun() {
+  const prompt = document.getElementById('studio-prompt').value.trim();
+  if (!prompt) return;
+  const go  = document.getElementById('studio-go');
+  const sta = document.getElementById('studio-status');
+  go.disabled = true;
+
+  if (studioMode === 'gen') {
+    const full = studioStyle ? `${prompt}, ${studioStyle}` : prompt;
+    sta.textContent = '✨ Generating image…';
+    // build URL instantly; image loads in card
+    const seed    = Math.floor(Math.random() * 99999);
+    const encoded = encodeURIComponent(full.slice(0, 300).replace(/[^\w\s,.-]/g, ''));
+    const url     = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=500&nologo=true&seed=${seed}&enhance=true`;
+    addGalleryCard(url, prompt, 'gen', true);
+    sta.textContent = '⏳ Image loading — may take ~25 seconds…';
+    setTimeout(() => { sta.textContent = ''; }, 28000);
+  } else {
+    sta.textContent = '🔍 Searching the web…';
+    try {
+      const res  = await fetch(apiUrl('/chat'), {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          message: `find image of ${prompt}`,
+          history: [],
+          session_id: SESSION_ID,
+        }),
+      });
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let found = 0;
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, {stream:true});
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (raw === '[DONE]') break;
+          try {
+            const obj = JSON.parse(raw);
+            if (obj.image) { addGalleryCard(obj.image, prompt, 'search', true); found++; }
+          } catch {}
+        }
+      }
+      sta.textContent = found ? `✅ Found ${found} result${found>1?'s':''}` : '⚠ No results found';
+      setTimeout(() => { sta.textContent = ''; }, 3000);
+    } catch {
+      sta.textContent = '⚠ Search failed';
+    }
+  }
+  go.disabled = false;
+}
+
+function addGalleryCard(url, caption, type, save_) {
+  const gallery = document.getElementById('gallery');
+  const empty   = document.getElementById('gallery-empty');
+  if (empty) empty.remove();
+
+  const card = document.createElement('div');
+  card.className = 'gallery-card';
+
+  const spin = document.createElement('div');
+  spin.className = 'gc-spin';
+  spin.textContent = type === 'search' ? '🔍' : '✨';
+  card.appendChild(spin);
+
+  const img = document.createElement('img');
+  img.className = 'gc-img';
+  img.alt = caption;
+  img.style.display = 'none';
+  img.onclick = () => openLightbox(url);
+  img.onload  = () => { spin.remove(); img.style.display = 'block'; };
+  img.onerror = () => { spin.remove(); card.querySelector('.gc-foot').querySelector('.gc-cap').textContent = '⚠ Failed to load'; };
+  img.src = url;
+  card.appendChild(img);
+
+  const foot = document.createElement('div');
+  foot.className = 'gc-foot';
+  foot.innerHTML = `<div class="gc-cap" title="${esc(caption)}">${esc(caption)}</div>`;
+  const dl = document.createElement('button');
+  dl.className = 'gc-dl'; dl.title = 'Download';
+  dl.textContent = '⬇';
+  dl.onclick = (e) => { e.stopPropagation(); downloadImg(url, caption); };
+  foot.appendChild(dl);
+  card.appendChild(foot);
+
+  // insert newest first
+  gallery.insertBefore(card, gallery.firstChild);
+
+  if (save_) {
+    galleryItems.unshift({url, caption, type});
+    galleryItems = galleryItems.slice(0, 50); // keep last 50
+    localStorage.setItem('gallery', JSON.stringify(galleryItems));
+  }
+}
+
+function downloadImg(url, name) {
+  const a = document.createElement('a');
+  a.href = url; a.download = (name || 'image').slice(0,40) + '.jpg';
+  a.target = '_blank'; a.click();
 }
 </script>
 </body>
