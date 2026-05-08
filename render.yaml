@@ -9,3 +9,4 @@ services:
         sync: false
       - key: PORT
         generateValue: false
+    autoDeploy: true

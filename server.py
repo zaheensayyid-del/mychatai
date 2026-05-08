@@ -336,6 +336,6 @@ if __name__ == "__main__":
     print(f"\n  MyChatAI")
     print(f"  http://localhost:{PORT}  —  Ctrl+C to stop\n")
     try:
-        HTTPServer(("", PORT), Handler).serve_forever()
+        HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
     except KeyboardInterrupt:
         print("\n  Stopped.")
