@@ -95,7 +95,7 @@ def generate_image(prompt: str) -> str:
     clean = re.sub(r'[^\w\s,.-]', '', prompt)[:300]
     encoded = urllib.parse.quote(clean)
     return (f"https://image.pollinations.ai/prompt/{encoded}"
-            f"?width=800&height=500&nologo=true&seed={seed}&enhance=true")
+            f"?width=800&height=500&nologo=true&seed={seed}&model=flux")
 
 
 # ══ INTERNET IMAGE SEARCH — DuckDuckGo + Wikimedia fallback ══════════════
