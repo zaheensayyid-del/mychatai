@@ -1,0 +1,7 @@
+sessions/
+weights/
+__pycache__/
+*.pyc
+user_profile.json
+config.json
+.DS_Store

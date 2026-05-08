@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MyChatAI</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a1a;--sidebar:#111;--card:#252525;--card2:#2e2e2e;
+  --border:#333;--text:#e8e8e8;--muted:#777;--muted2:#555;
+  --green:#10a37f;--green2:#0c8a6a;--blue:#4a9eff;--orange:#f59e0b;
+}
+body{background:var(--bg);color:var(--text);
+     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+     height:100vh;display:flex;overflow:hidden}
+
+/* ══ SIDEBAR ═══════════════════════════════════════════════════════════════ */
+#sidebar{width:272px;background:var(--sidebar);display:flex;
+         flex-direction:column;border-right:1px solid var(--border);flex-shrink:0}
+
+#sidebar-head{padding:16px 14px 12px;border-bottom:1px solid var(--border)}
+#new-btn{width:100%;background:var(--green);color:#fff;border:none;
+         padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;
+         font-weight:600;display:flex;align-items:center;gap:8px;
+         transition:background .15s;letter-spacing:.01em}
+#new-btn:hover{background:var(--green2)}
+
+/* memory panel */
+#memory-panel{border-bottom:1px solid var(--border);padding:12px 14px}
+#memory-toggle{width:100%;background:none;border:none;color:var(--muted);
+               cursor:pointer;font-size:12px;display:flex;align-items:center;
+               justify-content:space-between;padding:0;transition:color .12s}
+#memory-toggle:hover{color:var(--text)}
+#memory-toggle span{font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+#memory-body{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.mem-row{display:flex;gap:6px;align-items:flex-start}
+.mem-key{font-size:11px;color:var(--muted);min-width:64px;flex-shrink:0;padding-top:1px}
+.mem-val{font-size:12px;color:var(--text);line-height:1.4}
+.mem-tag{display:inline-block;background:var(--card2);border:1px solid var(--border);
+         border-radius:12px;padding:2px 8px;font-size:11px;margin:1px 2px 1px 0}
+.mem-empty{font-size:12px;color:var(--muted2);font-style:italic}
+#reset-mem{margin-top:8px;background:none;border:1px solid var(--border);
+           color:var(--muted);border-radius:6px;padding:4px 10px;
+           font-size:11px;cursor:pointer;transition:all .12s;width:100%}
+#reset-mem:hover{border-color:#e55;color:#e55}
+
+/* chat history */
+#history{flex:1;overflow-y:auto;padding:8px}
+#history::-webkit-scrollbar{width:4px}
+#history::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.hitem{padding:8px 11px;border-radius:8px;cursor:pointer;font-size:13px;
+       color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+       display:flex;align-items:center;justify-content:space-between;
+       transition:background .12s,color .12s}
+.hitem:hover,.hitem.on{background:var(--card);color:var(--text)}
+.hitem .x{display:none;background:none;border:none;color:var(--muted2);
+           cursor:pointer;font-size:12px;padding:2px 4px;flex-shrink:0}
+.hitem:hover .x{display:block}
+.hitem .x:hover{color:#e55}
+
+#sidebar-foot{padding:12px 14px;border-top:1px solid var(--border);
+              font-size:11px;color:var(--muted2);
+              display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;background:#e55;flex-shrink:0;transition:background .3s}
+.dot.ok{background:var(--green)}
+.dot.warn{background:var(--orange)}
+#status-txt{font-size:11px;color:var(--muted)}
+
+/* ══ MAIN ═══════════════════════════════════════════════════════════════════ */
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+
+#topbar{padding:14px 22px;display:flex;align-items:center;gap:12px;
+        border-bottom:1px solid var(--border);flex-shrink:0;
+        background:var(--sidebar)}
+.ai-icon{width:32px;height:32px;background:var(--green);border-radius:50%;
+          display:flex;align-items:center;justify-content:center;
+          font-size:15px;flex-shrink:0}
+#topbar h1{font-size:15px;font-weight:700;letter-spacing:.01em}
+#greeting{margin-left:auto;font-size:13px;color:var(--muted);font-style:italic}
+
+/* ══ MESSAGES ═══════════════════════════════════════════════════════════════ */
+#msgs{flex:1;overflow-y:auto;padding:28px 0 12px;scroll-behavior:smooth}
+#msgs::-webkit-scrollbar{width:6px}
+#msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.row{max-width:760px;margin:0 auto;padding:6px 22px}
+.row+.row{padding-top:3px}
+.lbl{font-size:11px;font-weight:700;text-transform:uppercase;
+     letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.row.user .lbl{color:var(--green)}
+.bubble{font-size:15px;line-height:1.75;word-break:break-word}
+.row.user .bubble{background:var(--card2);padding:12px 16px;
+                  border-radius:18px 18px 4px 18px;display:inline-block;
+                  max-width:90%}
+.row.assistant .bubble{white-space:pre-wrap}
+
+/* markdown in bubbles */
+.bubble strong{font-weight:700}
+.bubble em{font-style:italic}
+.bubble code{background:#111;padding:2px 6px;border-radius:4px;
+             font-family:"SF Mono","Fira Code",monospace;font-size:13px;color:#e2a86e}
+.bubble pre{background:#0d0d0d;border:1px solid var(--border);border-radius:10px;
+            padding:14px 16px;overflow-x:auto;margin:10px 0}
+.bubble pre code{background:none;padding:0;color:#cde6a0;font-size:13px}
+.bubble ul,.bubble ol{padding-left:20px;margin:6px 0}
+.bubble li{margin:3px 0}
+.bubble hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* images */
+.chat-img-wrap{margin:10px 0;display:inline-block}
+.chat-img-wrap img{max-width:min(480px,90vw);border-radius:12px;
+  display:block;border:1px solid var(--border);cursor:zoom-in}
+.chat-img-wrap img.loading{background:var(--card2);min-height:200px;
+  filter:blur(2px);transition:filter .3s}
+.chat-img-wrap img.loaded{filter:none}
+.img-caption{font-size:11px;color:var(--muted);margin-top:5px}
+.img-grid{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
+.img-grid .chat-img-wrap img{max-width:min(220px,42vw)}
+
+/* lightbox */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
+  z-index:999;align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.open{display:flex}
+#lightbox img{max-width:92vw;max-height:92vh;border-radius:10px;object-fit:contain}
+#lightbox-close{position:fixed;top:16px;right:20px;color:#fff;font-size:28px;
+  cursor:pointer;background:none;border:none;line-height:1}
+
+/* typing indicator */
+.typing{display:flex;align-items:center;gap:4px;padding:4px 0}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:bop 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bop{0%,60%,100%{transform:translateY(0);opacity:.6}
+               30%{transform:translateY(-6px);opacity:1}}
+
+/* welcome screen */
+#welcome{display:flex;flex-direction:column;align-items:center;
+         justify-content:center;gap:16px;padding:60px 20px 40px;
+         text-align:center;color:var(--muted)}
+#welcome .big{line-height:1}
+#welcome h2{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+#welcome p{font-size:14px;max-width:400px;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:20px;
+      padding:8px 18px;font-size:13px;cursor:pointer;color:var(--text);
+      transition:background .12s,border-color .12s}
+.chip:hover{background:var(--card2);border-color:var(--green)}
+
+/* ══ INPUT ══════════════════════════════════════════════════════════════════ */
+#input-area{padding:14px 22px 20px;border-top:1px solid var(--border);flex-shrink:0}
+#err{display:none;background:#2a1010;border:1px solid #5a2020;color:#ff8a8a;
+     padding:10px 14px;border-radius:10px;font-size:13px;
+     max-width:760px;margin:0 auto 10px;line-height:1.5}
+#box{max-width:760px;margin:0 auto;background:var(--card);
+     border:1px solid var(--border);border-radius:18px;
+     display:flex;align-items:flex-end;gap:10px;padding:11px 15px;
+     transition:border-color .2s,box-shadow .2s}
+#box:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,163,127,.12)}
+#txt{flex:1;background:none;border:none;color:var(--text);font-size:15px;
+     line-height:1.55;resize:none;outline:none;
+     max-height:180px;min-height:24px;font-family:inherit}
+#txt::placeholder{color:var(--muted2)}
+#send{background:var(--green);border:none;color:#fff;width:34px;height:34px;
+      border-radius:9px;cursor:pointer;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;transition:background .15s,opacity .15s,transform .1s}
+#send:hover{background:var(--green2);transform:scale(1.05)}
+#send:disabled{opacity:.3;cursor:not-allowed;transform:none}
+#hint{max-width:760px;margin:7px auto 0;font-size:11px;
+      color:var(--muted2);text-align:center}
+
+/* ── notification toast ── */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+       background:var(--card2);border:1px solid var(--border);border-radius:10px;
+       padding:9px 18px;font-size:13px;color:var(--text);opacity:0;
+       transition:all .3s;pointer-events:none;z-index:99}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+<div id="sidebar">
+  <div id="sidebar-head">
+    <button id="new-btn" onclick="newChat()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      New Chat
+    </button>
+  </div>
+
+  <!-- memory -->
+  <div id="memory-panel">
+    <button id="memory-toggle" onclick="toggleMemory()">
+      <span>🧠 What AI knows about you</span>
+      <span id="mem-arrow">▾</span>
+    </button>
+    <div id="memory-body"></div>
+  </div>
+
+  <div id="history"></div>
+
+  <div id="sidebar-foot">
+    <div class="dot" id="dot"></div>
+    <span id="status-txt">Connecting…</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════════════════ -->
+<div id="main">
+  <div id="topbar">
+    <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10,55 C10,30 20,20 30,15 L20,5 L38,22 C42,20 46,19 50,19 C54,19 58,20 62,22 L80,5 L70,15 C80,20 90,30 90,55 C90,76 72,90 50,90 C28,90 10,76 10,55 Z" fill="#111"/><ellipse cx="36" cy="52" rx="10" ry="7" fill="white"/><ellipse cx="64" cy="52" rx="10" ry="7" fill="white"/><path d="M47,64 Q50,68 53,64 Q50,61 47,64Z" fill="white"/></svg>
+    <h1 id="title">MyChatAI</h1>
+    <div id="greeting"></div>
+  </div>
+
+  <div id="msgs">
+    <div id="welcome">
+      <div class="big"><svg width="110" height="110" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10,55 C10,30 20,20 30,15 L20,5 L38,22 C42,20 46,19 50,19 C54,19 58,20 62,22 L80,5 L70,15 C80,20 90,30 90,55 C90,76 72,90 50,90 C28,90 10,76 10,55 Z" fill="#111"/><ellipse cx="36" cy="52" rx="10" ry="7" fill="white"/><ellipse cx="64" cy="52" rx="10" ry="7" fill="white"/><path d="M47,64 Q50,68 53,64 Q50,61 47,64Z" fill="white"/></svg></div>
+      <h2>Hi, I'm MyChatAI</h2>
+      <p>I'm a real AI that learns who you are over time — your name, interests, how you like to talk. Every conversation makes me better at helping <em>you</em>.</p>
+      <div class="chips">
+        <div class="chip" onclick="chip(this)">What's your name?</div>
+        <div class="chip" onclick="chip(this)">What can you help me with?</div>
+        <div class="chip" onclick="chip(this)">I love coding — teach me something cool</div>
+        <div class="chip" onclick="chip(this)">Tell me a fun fact</div>
+        <div class="chip" onclick="chip(this)">Help me write something</div>
+        <div class="chip" onclick="chip(this)">Explain machine learning simply</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <div id="err"></div>
+    <div id="box">
+      <textarea id="txt" rows="1" placeholder="Message MyChatAI…"
+        onkeydown="onKey(event)" oninput="grow(this)"></textarea>
+      <button id="send" onclick="sendMsg()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div id="hint">Enter to send · Shift+Enter for newline · Runs locally · Remembers you</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
+<script>
+// ══ STATE ══════════════════════════════════════════════════════════════════
+let chats   = JSON.parse(localStorage.getItem('chats4') || '[]');
+let cid     = null;
+let busy    = false;
+let memOpen = true;
+let profile = {};
+
+// unique session id per browser
+let SESSION_ID = localStorage.getItem('session_id');
+if (!SESSION_ID) {
+  SESSION_ID = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem('session_id', SESSION_ID);
+}
+
+// ══ BOOT ═══════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  renderHistory();
+  if (chats.length) loadChat(chats[0].id);
+  pollStatus();
+  setInterval(pollStatus, 8000);
+});
+
+async function pollStatus() {
+  try {
+    const r = await fetch('/status', {signal: AbortSignal.timeout(3000)});
+    const d = await r.json();
+    const dot = document.getElementById('dot');
+    const txt = document.getElementById('status-txt');
+
+    if (d.ready) {
+      dot.className = 'dot ok';
+      txt.textContent = 'AI ready';
+    } else {
+      dot.className = 'dot';
+      txt.textContent = 'AI offline — restart server';
+    }
+
+    if (d.profile) {
+      profile = d.profile;
+      renderMemory();
+      updateGreeting();
+    }
+  } catch {
+    document.getElementById('dot').className = 'dot';
+    document.getElementById('status-txt').textContent = 'Server offline';
+  }
+}
+
+function updateGreeting() {
+  const g = document.getElementById('greeting');
+  g.textContent = profile.name ? `Hey, ${profile.name} 👋` : '';
+  document.getElementById('title').textContent =
+    profile.name ? `MyChatAI` : 'MyChatAI';
+}
+
+// ══ MEMORY PANEL ═══════════════════════════════════════════════════════════
+function toggleMemory() {
+  memOpen = !memOpen;
+  document.getElementById('memory-body').style.display = memOpen ? '' : 'none';
+  document.getElementById('mem-arrow').textContent = memOpen ? '▾' : '▸';
+}
+
+function renderMemory() {
+  const el = document.getElementById('memory-body');
+  if (!memOpen) return;
+  const p = profile;
+  const rows = [];
+
+  if (p.name)       rows.push(['Name',     p.name]);
+  if (p.age)        rows.push(['Age',      p.age]);
+  if (p.location)   rows.push(['From',     p.location]);
+  if (p.occupation) rows.push(['Job',      p.occupation]);
+  if (p.interests?.length)
+    rows.push(['Likes', p.interests.map(i => `<span class="mem-tag">${esc(i)}</span>`).join('')]);
+  if (p.dislikes?.length)
+    rows.push(['Dislikes', p.dislikes.map(i => `<span class="mem-tag">${esc(i)}</span>`).join('')]);
+  rows.push(['Messages', `${p.total_messages || 0} total`]);
+  rows.push(['Style', `${p.style || 'balanced'} · ${p.preferred_length || 'medium'} responses`]);
+
+  if (rows.length === 1) {
+    el.innerHTML = `<div class="mem-empty">Start chatting — I'll learn about you.</div>
+      <button id="reset-mem" onclick="resetMemory()">Clear memory</button>`;
+    return;
+  }
+
+  el.innerHTML = rows.map(([k, v]) =>
+    `<div class="mem-row">
+       <div class="mem-key">${k}</div>
+       <div class="mem-val">${v}</div>
+     </div>`
+  ).join('') +
+  `<button id="reset-mem" onclick="resetMemory()">Clear all memory</button>`;
+}
+
+async function resetMemory() {
+  if (!confirm('Clear everything I know about you?')) return;
+  await fetch('/profile/reset', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({session_id: SESSION_ID})});
+  profile = {};
+  renderMemory();
+  toast('Memory cleared');
+}
+
+// ══ CHAT HISTORY ═══════════════════════════════════════════════════════════
+function newChat() {
+  const id = Date.now().toString();
+  chats.unshift({id, title:'New Chat', messages:[]});
+  save(); loadChat(id);
+}
+function loadChat(id) {
+  cid = id; renderHistory();
+  const c = getChat(id);
+  document.getElementById('title').textContent = 'MyChatAI';
+  renderMsgs();
+  document.getElementById('txt').focus();
+}
+function delChat(id, e) {
+  e.stopPropagation();
+  chats = chats.filter(c => c.id !== id); save();
+  if (cid === id) { cid = null; renderMsgs(); }
+  renderHistory();
+}
+function getChat(id) { return chats.find(c => c.id === id); }
+function save() { localStorage.setItem('chats4', JSON.stringify(chats)); }
+
+function renderHistory() {
+  const el = document.getElementById('history');
+  el.innerHTML = '';
+  chats.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'hitem' + (c.id === cid ? ' on' : '');
+    d.onclick = () => loadChat(c.id);
+    d.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis">${esc(c.title)}</span>
+      <button class="x" onclick="delChat('${c.id}',event)">✕</button>`;
+    el.appendChild(d);
+  });
+}
+
+// ══ RENDERING ══════════════════════════════════════════════════════════════
+const WELCOME_HTML = `<div id="welcome">
+  <div class="big"><svg width="110" height="110" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10,55 C10,30 20,20 30,15 L20,5 L38,22 C42,20 46,19 50,19 C54,19 58,20 62,22 L80,5 L70,15 C80,20 90,30 90,55 C90,76 72,90 50,90 C28,90 10,76 10,55 Z" fill="#111"/><ellipse cx="36" cy="52" rx="10" ry="7" fill="white"/><ellipse cx="64" cy="52" rx="10" ry="7" fill="white"/><path d="M47,64 Q50,68 53,64 Q50,61 47,64Z" fill="white"/></svg></div>
+  <h2>Hi, I'm MyChatAI</h2>
+  <p>I'm a real AI that learns who you are over time — your name, interests, how you like to talk.</p>
+  <div class="chips">
+    <div class="chip" onclick="chip(this)">What's your name?</div>
+    <div class="chip" onclick="chip(this)">What can you help me with?</div>
+    <div class="chip" onclick="chip(this)">I love coding — teach me something cool</div>
+    <div class="chip" onclick="chip(this)">Tell me a fun fact</div>
+    <div class="chip" onclick="chip(this)">Help me write something</div>
+    <div class="chip" onclick="chip(this)">Explain machine learning simply</div>
+  </div></div>`;
+
+function renderMsgs() {
+  const box = document.getElementById('msgs');
+  const c   = getChat(cid);
+  if (!c || !c.messages.length) { box.innerHTML = WELCOME_HTML; return; }
+  box.innerHTML = '';
+  c.messages.forEach(m => addBubble(m.role, m.content, false));
+  scroll();
+}
+
+function addBubble(role, text, animate) {
+  const box = document.getElementById('msgs');
+  const row = document.createElement('div');
+  row.className = `row ${role}`;
+  const label = role === 'user' ? 'You' : 'MyChatAI';
+  row.innerHTML = `<div class="lbl">${label}</div><div class="bubble">${fmt(text)}</div>`;
+  box.appendChild(row);
+  return row;
+}
+
+function fmt(raw) {
+  let t = esc(raw);
+  // code blocks first
+  t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) =>
+    `<pre><code>${code.trim()}</code></pre>`);
+  t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // headings
+  t = t.replace(/^### (.+)$/gm, '<strong>$1</strong>');
+  t = t.replace(/^## (.+)$/gm, '<strong style="font-size:1.05em">$1</strong>');
+  // bold / italic
+  t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // lists
+  t = t.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+  t = t.replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`);
+  // horizontal rule
+  t = t.replace(/^---$/gm, '<hr>');
+  // preserve newlines outside tags
+  t = t.replace(/\n/g, '<br>');
+  return t;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function scroll() {
+  const b = document.getElementById('msgs');
+  requestAnimationFrame(() => b.scrollTop = b.scrollHeight);
+}
+
+// ══ INPUT ═══════════════════════════════════════════════════════════════════
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+function grow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+}
+function chip(el) {
+  document.getElementById('txt').value = el.textContent.trim();
+  sendMsg();
+}
+
+// ══ SEND + STREAM ══════════════════════════════════════════════════════════
+async function sendMsg() {
+  if (busy) return;
+  const input = document.getElementById('txt');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  input.value = ''; input.style.height = 'auto';
+  hideErr();
+
+  if (!cid) newChat();
+  const chat = getChat(cid);
+
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+
+  chat.messages.push({role:'user', content:text});
+  save(); addBubble('user', text, false); scroll();
+
+  if (chat.messages.filter(m=>m.role==='user').length === 1) {
+    chat.title = text.slice(0, 46) + (text.length > 46 ? '…' : '');
+    renderHistory(); save();
+  }
+
+  setBusy(true);
+
+  // typing indicator
+  const typingRow = document.createElement('div');
+  typingRow.className = 'row assistant';
+  typingRow.innerHTML = `<div class="lbl">MyChatAI</div>
+    <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  document.getElementById('msgs').appendChild(typingRow);
+  scroll();
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: text,
+        history: chat.messages.slice(-11, -1),
+        session_id: SESSION_ID,
+      }),
+    });
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+
+    // stream SSE
+    typingRow.remove();
+    const aiRow    = addBubble('assistant', '', false);
+    const aiBubble = aiRow.querySelector('.bubble');
+    let   full     = '';
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let   buf     = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream:true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') break;
+        try {
+          const obj = JSON.parse(raw);
+          // winner metadata — show badge
+          if (obj.meta) { /* source info hidden */ }
+          if (obj.token) {
+            full += obj.token;
+            aiBubble.innerHTML = fmt(full);
+            scroll();
+          }
+          if (obj.image) {
+            addImageToBubble(aiBubble, obj.image, obj.caption || '');
+            scroll();
+          }
+          if (obj.error) throw new Error(obj.error);
+        } catch {}
+      }
+    }
+
+    chat.messages.push({role:'assistant', content:full});
+    save();
+
+    // refresh profile after response (AI may have learned something)
+    fetch(`/profile?session_id=${SESSION_ID}`).then(r=>r.json()).then(d=>{
+      profile = d; renderMemory(); updateGreeting();
+    }).catch(()=>{});
+
+  } catch (e) {
+    typingRow.remove();
+    let msg = e.message || 'Unknown error';
+    if (msg.includes('Ollama') || msg.includes('ollama')) {
+      showErr(`<strong>AI engine is not running.</strong><br>
+        Open the AI engine app on your Mac, then try again.`);
+    } else if (msg.includes('Model') || msg.includes('model')) {
+      showErr(`<strong>AI model not ready.</strong><br>
+        Double-click <strong>start.command</strong> to set it up automatically.`);
+    } else {
+      showErr(`Error: ${esc(msg)}`);
+    }
+    chat.messages.pop(); save();
+  } finally {
+    setBusy(false);
+    document.getElementById('txt').focus();
+  }
+}
+
+function setBusy(on) {
+  busy = on;
+  document.getElementById('send').disabled = on;
+}
+function showErr(html) {
+  const b = document.getElementById('err');
+  b.innerHTML = '⚠ ' + html; b.style.display = 'block';
+}
+function hideErr() { document.getElementById('err').style.display = 'none'; }
+
+// ══ IMAGE RENDERING ════════════════════════════════════════════════════════
+function addImageToBubble(bubble, url, caption) {
+  // use a grid div — reuse existing one if already in this bubble
+  let grid = bubble.querySelector('.img-grid');
+  if (!grid) {
+    grid = document.createElement('div');
+    grid.className = 'img-grid';
+    bubble.appendChild(grid);
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-img-wrap';
+
+  const img = document.createElement('img');
+  img.className = 'loading';
+  img.alt = caption;
+  img.onclick = () => openLightbox(url);
+  img.onload  = () => img.classList.replace('loading', 'loaded');
+  img.onerror = () => { wrap.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px">⚠ Image failed to load</div>`; };
+  img.src = url;
+
+  wrap.appendChild(img);
+  if (caption) {
+    const cap = document.createElement('div');
+    cap.className = 'img-caption';
+    cap.textContent = caption;
+    wrap.appendChild(cap);
+  }
+  grid.appendChild(wrap);
+}
+
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ══ TOAST ═══════════════════════════════════════════════════════════════════
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- cat head -->
+  <path d="M10,55 C10,30 20,20 30,15 L20,5 L38,22 C42,20 46,19 50,19 C54,19 58,20 62,22 L80,5 L70,15 C80,20 90,30 90,55 C90,76 72,90 50,90 C28,90 10,76 10,55 Z" fill="#111"/>
+  <!-- left eye -->
+  <ellipse cx="36" cy="52" rx="10" ry="7" fill="white"/>
+  <!-- right eye -->
+  <ellipse cx="64" cy="52" rx="10" ry="7" fill="white"/>
+  <!-- nose -->
+  <path d="M47,64 Q50,68 53,64 Q50,61 47,64Z" fill="white"/>
+</svg>
