@@ -22,7 +22,7 @@ if not GROQ_KEY:
             _cfg = json.load(f)
         GROQ_KEY = _cfg.get("groq_api_key", "")
 
-GROQ_MODEL   = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL   = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 OLLAMA_MODEL = "llama3.2"
 
 # per-session memory cache
@@ -98,33 +98,69 @@ def generate_image(prompt: str) -> str:
             f"?width=800&height=500&nologo=true&seed={seed}&enhance=true")
 
 
-# ══ INTERNET IMAGE SEARCH — DuckDuckGo (free, no key) ════════════════════
+# ══ INTERNET IMAGE SEARCH — DuckDuckGo + Wikimedia fallback ══════════════
 
-def search_image(query: str) -> list:
-    """Return up to 4 image URLs from DuckDuckGo image search."""
+def _ddg_search(query: str, headers: dict) -> list:
+    """DuckDuckGo image search."""
     try:
-        # Step 1: get vqd token
-        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                                  "AppleWebKit/537.36 Chrome/120 Safari/537.36"}
         r = requests.get("https://duckduckgo.com/",
-                         params={"q": query}, headers=headers, timeout=8)
-        vqd = re.search(r'vqd=(["\'])([^"\']+)\1', r.text)
-        if not vqd:
-            vqd = re.search(r'vqd=([\d-]+)', r.text)
-        token = vqd.group(2) if vqd else "4-1"
-
-        # Step 2: image search
-        params = {
-            "l": "us-en", "o": "json", "q": query,
-            "vqd": token, "f": ",,,,,", "p": "1",
-        }
+                         params={"q": query, "iax": "images", "ia": "images"},
+                         headers=headers, timeout=6)
+        token = None
+        for pat in [r'vqd=(["\'])([^"\']+)\1', r'"vqd":"([^"]+)"',
+                    r'vqd=([\d-]+)', r"vqd%3D([^&%]+)"]:
+            m = re.search(pat, r.text)
+            if m:
+                token = m.group(2) if len(m.groups()) > 1 else m.group(1)
+                break
+        if not token:
+            return []
         r2 = requests.get("https://duckduckgo.com/i.js",
-                          params=params, headers=headers, timeout=8)
+                          params={"l":"us-en","o":"json","q":query,
+                                  "vqd":token,"f":",,,,,","p":"1"},
+                          headers=headers, timeout=6)
         results = r2.json().get("results", [])
-        urls = [x["image"] for x in results[:4] if x.get("image")]
+        return [x["image"] for x in results[:4] if x.get("image")]
+    except Exception:
+        return []
+
+
+def _wikimedia_search(query: str) -> list:
+    """Wikimedia Commons image search — always free, no key needed."""
+    try:
+        r = requests.get(
+            "https://commons.wikimedia.org/w/api.php",
+            params={"action":"query","generator":"search","gsrnamespace":"6",
+                    "gsrsearch":query,"gsrlimit":"8","prop":"imageinfo",
+                    "iiprop":"url","iiurlwidth":"800","format":"json"},
+            timeout=8)
+        pages = r.json().get("query", {}).get("pages", {})
+        urls = []
+        for page in pages.values():
+            ii  = page.get("imageinfo", [{}])[0]
+            url = ii.get("thumburl") or ii.get("url", "")
+            if url and any(url.lower().endswith(e)
+                           for e in (".jpg",".jpeg",".png",".webp")):
+                urls.append(url)
+            if len(urls) >= 4:
+                break
         return urls
     except Exception:
         return []
+
+
+def search_image(query: str) -> list:
+    """Return up to 4 image URLs — tries DuckDuckGo first, then Wikimedia."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    urls = _ddg_search(query, headers)
+    if not urls:
+        urls = _wikimedia_search(query)
+    return urls
 
 
 # ══ GROQ STREAMING ═════════════════════════════════════════════════════════
@@ -139,8 +175,8 @@ def stream_groq(all_msgs, system, handler):
                 "model": GROQ_MODEL,
                 "messages": [{"role": "system", "content": system}] + all_msgs,
                 "stream": True,
-                "temperature": 0.75,
-                "max_tokens": 1024,
+                "temperature": 0.7,
+                "max_tokens": 512,
             },
             headers={"Authorization": f"Bearer {GROQ_KEY}",
                      "Content-Type": "application/json"},
@@ -285,7 +321,7 @@ class Handler(BaseHTTPRequestHandler):
             system = mem.build_system_prompt()
 
             msgs = [{"role": t["role"], "content": t["content"]}
-                    for t in history[-10:]
+                    for t in history[-6:]
                     if t.get("role") in ("user", "assistant") and t.get("content")]
             all_msgs = msgs + [{"role": "user", "content": user_msg}]
 

@@ -117,6 +117,10 @@ body{background:var(--bg);color:var(--text);
 .img-caption{font-size:11px;color:var(--muted);margin-top:5px}
 .img-grid{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
 .img-grid .chat-img-wrap img{max-width:min(220px,42vw)}
+.img-spinner{width:180px;height:120px;background:var(--input);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 
 /* lightbox */
 #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
@@ -602,7 +606,6 @@ function hideErr() { document.getElementById('err').style.display = 'none'; }
 
 // ══ IMAGE RENDERING ════════════════════════════════════════════════════════
 function addImageToBubble(bubble, url, caption) {
-  // use a grid div — reuse existing one if already in this bubble
   let grid = bubble.querySelector('.img-grid');
   if (!grid) {
     grid = document.createElement('div');
@@ -612,12 +615,26 @@ function addImageToBubble(bubble, url, caption) {
   const wrap = document.createElement('div');
   wrap.className = 'chat-img-wrap';
 
+  // Show spinner while image loads
+  const spinner = document.createElement('div');
+  spinner.className = 'img-spinner';
+  spinner.textContent = '🖼️';
+  wrap.appendChild(spinner);
+
   const img = document.createElement('img');
   img.className = 'loading';
   img.alt = caption;
+  img.style.display = 'none';
   img.onclick = () => openLightbox(url);
-  img.onload  = () => img.classList.replace('loading', 'loaded');
-  img.onerror = () => { wrap.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px">⚠ Image failed to load</div>`; };
+  img.onload  = () => {
+    spinner.remove();
+    img.style.display = '';
+    img.classList.replace('loading', 'loaded');
+  };
+  img.onerror = () => {
+    spinner.remove();
+    wrap.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px">⚠ Image unavailable</div>`;
+  };
   img.src = url;
 
   wrap.appendChild(img);
