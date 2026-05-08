@@ -842,55 +842,68 @@ async function studioRun() {
   const sta = document.getElementById('studio-status');
   go.disabled = true;
 
-  if (studioMode === 'gen') {
-    const full = studioStyle ? `${prompt}, ${studioStyle}` : prompt;
-    sta.textContent = '✨ Generating image…';
-    // build URL instantly; image loads in card
-    const seed    = Math.floor(Math.random() * 99999);
-    const encoded = encodeURIComponent(full.slice(0, 300).replace(/[^\w\s,.-]/g, ''));
-    const url     = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=500&nologo=true&seed=${seed}&enhance=true`;
-    addGalleryCard(url, prompt, 'gen', true);
-    sta.textContent = '⏳ Image loading — may take ~25 seconds…';
-    setTimeout(() => { sta.textContent = ''; }, 28000);
-  } else {
-    sta.textContent = '🔍 Searching the web…';
-    try {
-      const res  = await fetch(apiUrl('/chat'), {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          message: `find image of ${prompt}`,
-          history: [],
-          session_id: SESSION_ID,
-        }),
-      });
-      const reader  = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = '';
-      let found = 0;
-      while (true) {
-        const {done, value} = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, {stream:true});
-        const lines = buf.split('\n'); buf = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const raw = line.slice(6).trim();
-          if (raw === '[DONE]') break;
-          try {
-            const obj = JSON.parse(raw);
-            if (obj.image) { addGalleryCard(obj.image, prompt, 'search', true); found++; }
-          } catch {}
-        }
+  // Both modes go through the server — it handles URL encoding + fallbacks
+  const isGen  = studioMode === 'gen';
+  const full   = isGen && studioStyle ? `${prompt}, ${studioStyle}` : prompt;
+  const msgTxt = isGen ? `generate image of ${full}` : `find image of ${prompt}`;
+  sta.textContent = isGen ? '✨ Generating image…' : '🔍 Searching the web…';
+
+  try {
+    const res = await fetch(apiUrl('/chat'), {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: msgTxt,
+        history: [],
+        session_id: SESSION_ID,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let found = 0;
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream:true});
+      const lines = buf.split('\n'); buf = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') break;
+        try {
+          const obj = JSON.parse(raw);
+          if (obj.image) {
+            addGalleryCard(obj.image, prompt, isGen ? 'gen' : 'search', true);
+            found++;
+            if (isGen) {
+              sta.textContent = '⏳ Image loading (up to 25s)…';
+              setTimeout(() => { sta.textContent = ''; go.disabled = false; }, 26000);
+              return; // one image for generate
+            }
+          }
+        } catch {}
       }
-      sta.textContent = found ? `✅ Found ${found} result${found>1?'s':''}` : '⚠ No results found';
-      setTimeout(() => { sta.textContent = ''; }, 3000);
-    } catch {
-      sta.textContent = '⚠ Search failed';
     }
+
+    if (!isGen) {
+      sta.textContent = found ? `✅ Found ${found} result${found>1?'s':''}` : '⚠ No results — try a different search';
+      setTimeout(() => { sta.textContent = ''; }, 3000);
+    }
+
+  } catch(err) {
+    sta.textContent = `⚠ Error: ${err.message}`;
+    setTimeout(() => { sta.textContent = ''; }, 4000);
   }
+
   go.disabled = false;
 }
+
 
 function addGalleryCard(url, caption, type, save_) {
   const gallery = document.getElementById('gallery');
@@ -911,7 +924,12 @@ function addGalleryCard(url, caption, type, save_) {
   img.style.display = 'none';
   img.onclick = () => openLightbox(url);
   img.onload  = () => { spin.remove(); img.style.display = 'block'; };
-  img.onerror = () => { spin.remove(); card.querySelector('.gc-foot').querySelector('.gc-cap').textContent = '⚠ Failed to load'; };
+  img.onerror = () => {
+    spin.innerHTML = '🔄';
+    spin.style.cursor = 'pointer';
+    spin.title = 'Click to retry';
+    spin.onclick = () => { spin.innerHTML = '✨'; spin.style.cursor=''; spin.onclick=null; img.src = url + '&retry=' + Date.now(); };
+  };
   img.src = url;
   card.appendChild(img);
 
